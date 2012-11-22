@@ -1,0 +1,25 @@
+{
+  "name": "qelp",
+  "version": "0.0.1",
+  "description": "Q promise helpers",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Submersible/node-qelp.git"
+  },
+  "keywords": [
+    "q",
+    "promise",
+    "deferred",
+    "async",
+    "cps"
+  ],
+  "author": "Ryan Munro <ryan@ringer.io>",
+  "license": "MIT",
+  "devDependencies": {
+    "tap": "~0.3.2"
+  }
+}
