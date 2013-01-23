@@ -1,7 +1,7 @@
 {
   "name": "qelp",
   "version": "0.0.1",
-  "description": "Q promise helpers",
+  "description": "jQuery promise helpers",
   "main": "index.js",
   "scripts": {
     "test": "tap test.js"
@@ -11,7 +11,7 @@
     "url": "git://github.com/Submersible/node-qelp.git"
   },
   "keywords": [
-    "q",
+    "jquery",
     "promise",
     "deferred",
     "async",
