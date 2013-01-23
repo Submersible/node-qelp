@@ -2,6 +2,8 @@
 
 'use strict';
 
+var Q = require('q');
+
 var qelp = {};
 
 /**
@@ -12,34 +14,37 @@ var qelp = {};
  * but then the user decides they don't want to wait for the data to load,
  * and instead loads another object in that promise's place.
  *
- * @param {$.Promise} promise Promise to add ability to cancel
- * @return {$.Promise} promise Promise with `cancel({Boolean} allowSuccess, {Boolean} allowError)` method
+ * @param {Promise} promise Promise to add ability to cancel
+ * @return {Promise} promise Promise with `cancel({Boolean} allowSuccess, {Boolean} allowError)` method
  */
-qelp.cancelPromise = function (promise) {
-    var deferred = $.Deferred(),
+qelp.cancel = function (promise) {
+    var defer = Q.defer(),
         cancel_success = false,
-        cancel_error = false;
+        cancel_error = false,
+        key,
+        p;
 
     promise.then(function () {
         if (!cancel_success) {
-            deferred.resolve.apply(deferred, arguments);
+            defer.resolve.apply(defer, arguments);
         }
     }, function () {
         if (!cancel_error) {
-            deferred.reject.apply(deferred, arguments);
+            defer.reject.apply(defer, arguments);
         }
     });
 
-    return $.extend(deferred.promise(), {
-        /**
-         * @param {Boolean} allowSuccess Allow success callback to fire
-         * @param {Boolean} allowError Allow error callback to fire
-         */
-        cancel: function (allowSuccess, allowError) {
-            cancel_success = !allowSuccess;
-            cancel_error = !allowError;
-        }
-    });
+    p = {};
+    for (key in defer.promise) {
+        p[key] = defer.promise[key];
+    }
+
+    p.cancel = function (allowSuccess, allowError) {
+        cancel_success = cancel_success || !allowSuccess;
+        cancel_error = cancel_error || !allowError;
+    };
+
+    return p;
 };
 
 /**
@@ -47,39 +52,17 @@ qelp.cancelPromise = function (promise) {
  * resolve.  Calling an AJAX function may not resolve successfully the first
  * time due to network issues, so this function will retry calling it.
  * @param {Function} fn Function which creates a promise
- * @return {$.Promise} A promise to the data we're retrying to resolve
+ * @return {Promise} A promise to the data we're retrying to resolve
  */
-qelp.retryPromiseFn = function (fn) {
-    return qelp.timeoutPromise(3500, fn()).pipe(null, function () {
-        /* Try a second time if the promise doesn't resolve after 3.5 seconds */
-        return qelp.timeoutPromise(3500, fn());
-    }).pipe(null, function () {
-        /* Try a third time if the promise doesn't resolve after 3.5 seconds, total 7 s */
-        return qelp.timeoutPromise(3500, fn());
-    });
-};
-
-/**
- * Creates a promise that will *reject* a promise if it doesn't resolve after a
- * specified delay.  If no promise is supplied, it will *resolve* after the
- * delay.
- * @param {Number} timeout Delay in milliseconds
- * @param {$.Promise Optional} promise Promise to add the timeout to
- * @return {$.Promise} Promise with a `cancel()` method
- */
-qelp.timeoutPromise = function (timeout, promise) {
-    var deferred = $.Deferred(),
-        timer = setTimeout(promise ? deferred.reject : deferred.resolve, timeout);
-
-    if (promise) {
-        promise.then(deferred.resolve, deferred.reject);
-    }
-
-    return $.extend(deferred.promise(), {
-        cancel: function () {
-            clearTimeout(timer);
+qelp.retryFn = function (fn, timings) {
+    timings = timings || [3500, 3500, 3500];
+    return (function next() {
+        var p = qelp.timeout(timings.unshift(), fn());
+        if (timings.length) {
+            return p.then(null, next);
         }
-    });
+        return p;
+    }());
 };
 
 module.exports = qelp;

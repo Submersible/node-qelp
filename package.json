@@ -1,6 +1,6 @@
 {
   "name": "qelp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Q promise helpers",
   "main": "index.js",
   "scripts": {
@@ -17,9 +17,12 @@
     "async",
     "cps"
   ],
-  "author": "Ryan Munro <ryan@ringer.io>",
+  "author": "Ryan Munro <ryan@subc.io>",
   "license": "MIT",
   "devDependencies": {
     "tap": "~0.3.2"
+  },
+  "dependencies": {
+    "q": "~0.8.12"
   }
 }
